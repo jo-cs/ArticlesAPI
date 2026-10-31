@@ -1,0 +1,8 @@
+
+@ArticlesAPI_HostAddress = http://localhost:5253
+
+###
+
+### Default weather endpoint
+GET {{ArticlesAPI_HostAddress}}/weatherforecast
+Accept: application/json
