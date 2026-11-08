@@ -1,4 +1,5 @@
 ﻿using ArticlesAPI.Features.Categories.DTOs;
+using ArticlesAPI.Shared.DTOs;
 
 namespace ArticlesAPI.Features.Categories.Services;
 
@@ -8,9 +9,12 @@ public interface ICategoryService
 
     Task<IEnumerable<CategoryResponseDto>> GetAllCategoriesAsync();
 
-    Task<CategoryResponseDto?> GetCategoryByIdAsync(int id);
-
     Task<bool> UpdateCategoryAsync(int id, UpdateCategoryDto category);
 
     Task<bool> DeleteCategoryAsync(int id);
+    
+    Task<PagedResponseDto<CategoryResponseDto>> GetFilteredCategoriesAsync(
+        CategoryFilterDto filter);
+    
+
 }

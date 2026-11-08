@@ -19,9 +19,7 @@ public class JwtTokenGenerator
     {
         _configuration = configuration;
     }
-
-    // CHANGED: أضفنا permissions لاستقبال صلاحيات المستخدم
-    // التي سيتم جلبها من قاعدة البيانات في خدمة تسجيل الدخول
+    
     public string GenerateToken(User user, IEnumerable<string> permissions)
     {
         var secretKey = _configuration["Jwt:Key"]
@@ -43,8 +41,7 @@ public class JwtTokenGenerator
             key,
             SecurityAlgorithms.HmacSha256);
 
-        // CHANGED: استخدمنا List<Claim> بدل المصفوفة
-        // حتى نستطيع إضافة Claims الصلاحيات إليها لاحقًا
+
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Role, user.RoleName),
@@ -70,9 +67,6 @@ public class JwtTokenGenerator
                 Guid.NewGuid().ToString())
         };
 
-        // NEW: إضافة كل صلاحية إلى الـ JWT كـ Claim مستقلة
-        // نوع الـ Claim هو "permission"، والقيمة هي اسم الصلاحية
-        // مثل: Articles.Create أو Articles.Delete
         foreach (var permission in permissions)
         {
             claims.Add(new Claim("permission", permission));
@@ -81,8 +75,7 @@ public class JwtTokenGenerator
         var token = new JwtSecurityToken(
             issuer: issuer,
             audience: audience,
-
-            // CHANGED: تمرير القائمة التي تحتوي على الدور والصلاحيات
+            
             claims: claims,
 
             expires: DateTime.UtcNow.AddMinutes(30),

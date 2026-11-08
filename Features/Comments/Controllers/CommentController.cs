@@ -1,10 +1,11 @@
 using ArticlesAPI.Features.Comments.DTOs;
 using ArticlesAPI.Features.Comments.Services;
+using ArticlesAPI.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
 namespace ArticlesAPI.Features.Comments.Controllers;
 [ApiController]
 [Route("api/[controller]")]
-public class CommentController : ControllerBase
+public class CommentController : BaseController
 {
     private readonly ICommentService _service;
     public CommentController(ICommentService service) => _service = service;

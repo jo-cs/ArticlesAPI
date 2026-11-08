@@ -1,18 +1,26 @@
 ﻿using ArticlesAPI.Features.Articles.DTOs;
+using ArticlesAPI.Shared.DTOs;
+using ArticlesAPI.Shared.Results;
 
 namespace ArticlesAPI.Features.Articles.Services;
 
 public interface IArticleService
 {
-    Task<int> CreateArticleAsync(CreateArticleDto article);
+    Task<ServiceResult<int>> CreateArticleAsync(CreateArticleDto article);
 
-    Task<ArticleResponseDto> GetArticleByIdAsync(int id);
+    Task<ServiceResult<ArticleResponseDto>> GetArticleByIdAsync(int id);
 
-    Task<IEnumerable<ArticleResponseDto>> GetAllArticlesAsync();
+    Task<ServiceResult<IEnumerable<ArticleResponseDto>>> GetAllArticlesAsync();
 
-    Task<bool> UpdateArticleAsync(int id, UpdateArticleDto article);
+    Task<ServiceResult<bool>> UpdateArticleAsync(int id, UpdateArticleDto article);
 
-    Task<bool> DeleteArticleAsync(int id);
-    
-    Task<IEnumerable<ArticleResponseDto>> SearchArticlesAsync(string search);
+    Task<ServiceResult<bool>> DeleteArticleAsync(int id);
+
+    Task<ServiceResult<IEnumerable<ArticleResponseDto>>> SearchArticlesAsync(string search);
+
+    Task<ServiceResult<PagedResponseDto<ArticleResponseDto>>> GetFilteredArticlesAsync(
+        ArticleFilterDto filter);
+
+    Task<ServiceResult<int>> CreateArticleWithRelationsAsync(
+        CreateArticleWithRelationsDto article);
 }

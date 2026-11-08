@@ -1,5 +1,6 @@
 ﻿using ArticlesAPI.Features.Categories.DTOs;
 using ArticlesAPI.Features.Categories.Repositories;
+using ArticlesAPI.Shared.DTOs;
 
 namespace ArticlesAPI.Features.Categories.Services;
 
@@ -20,12 +21,7 @@ public class CategoryService : ICategoryService
     {
         return _repository.GetAllCategoriesAsync();
     }
-
-    public Task<CategoryResponseDto?> GetCategoryByIdAsync(int id)
-    {
-        return _repository.GetCategoryByIdAsync(id);
-    }
-
+    
     public Task<bool> UpdateCategoryAsync(int id, UpdateCategoryDto category)
     {
         return _repository.UpdateCategoryAsync(id, category);
@@ -34,5 +30,11 @@ public class CategoryService : ICategoryService
     public Task<bool> DeleteCategoryAsync(int id)
     {
         return _repository.DeleteCategoryAsync(id);
+    }
+    
+    public async Task<PagedResponseDto<CategoryResponseDto>> GetFilteredCategoriesAsync(
+        CategoryFilterDto filter)
+    {
+        return await _repository.GetFilteredCategoriesAsync(filter);
     }
 }

@@ -1,12 +1,13 @@
 ﻿using ArticlesAPI.Features.Categories.DTOs;
 using ArticlesAPI.Features.Categories.Services;
+using ArticlesAPI.Shared.Base;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ArticlesAPI.Features.Categories.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class CategoryController : ControllerBase
+public class CategoryController : BaseController
 {
     private readonly ICategoryService _service;
 
@@ -31,21 +32,7 @@ public class CategoryController : ControllerBase
 
         return Ok(categories);
     }
-
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetCategoryByIdAsync(
-        [FromRoute] int id)
-    {
-        var category = await _service.GetCategoryByIdAsync(id);
-
-        if (category is null)
-        {
-            return NotFound();
-        }
-
-        return Ok(category);
-    }
-
+    
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateCategoryAsync(
         [FromRoute] int id,
@@ -63,5 +50,14 @@ public class CategoryController : ControllerBase
         var success = await _service.DeleteCategoryAsync(id);
 
         return success ? Ok() : NotFound();
+    }
+
+    [HttpGet("filtered")]
+    public async Task<IActionResult> GetFilteredCategoriesAsync(
+        [FromQuery] CategoryFilterDto filter)
+    {
+        var result =
+            await _service.GetFilteredCategoriesAsync(filter);
+        return Ok(result);
     }
 }

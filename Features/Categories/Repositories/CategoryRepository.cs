@@ -1,89 +1,92 @@
-﻿using System.Data;
-using ArticlesAPI.Features.Categories.DTOs;
+﻿using ArticlesAPI.Features.Categories.DTOs;
 using ArticlesAPI.Infrastructure.Data;
-using Dapper;
+using ArticlesAPI.Shared.DTOs;
+using ArticlesAPI.Shared.Repositories;
 
 namespace ArticlesAPI.Features.Categories.Repositories;
 
-public class CategoryRepository : ICategoryRepository
+public class CategoryRepository :BaseRepository, ICategoryRepository
 {
-    private readonly DapperContext _context;
-
     public CategoryRepository(DapperContext context)
+        : base(context)
     {
-        _context = context;
     }
 
     public async Task<int> CreateCategoryAsync(CreateCategoryDto category)
     {
-        using var connection = _context.CreateConnection();
+        var parameters = new
+        {
+            Name = category.Name,
+            Description = category.Description
+        };
 
-        var categoryId = await connection.QuerySingleAsync<int>(
+        return await QuerySingleAsync<int>(
             "Category_Create",
-            new
-            {
-                Name = category.Name,
-                Description = category.Description
-            },
-            commandType: CommandType.StoredProcedure
+            parameters
         );
-
-        return categoryId;
     }
 
     public async Task<IEnumerable<CategoryResponseDto>> GetAllCategoriesAsync()
     {
-        using var connection = _context.CreateConnection();
-
-        var categories = await connection.QueryAsync<CategoryResponseDto>(
-            "Category_GetAll",
-            commandType: CommandType.StoredProcedure
+        return await QueryAsync<CategoryResponseDto>(
+            "Category_GetAll"
         );
-
-        return categories;
     }
 
-    public async Task<CategoryResponseDto?> GetCategoryByIdAsync(int id)
-    {
-        using var connection = _context.CreateConnection();
-
-        var category = await connection.QuerySingleOrDefaultAsync<CategoryResponseDto>(
-            "Category_GetById",
-            new { Id = id },
-            commandType: CommandType.StoredProcedure
-        );
-
-        return category;
-    }
 
     public async Task<bool> UpdateCategoryAsync(int id, UpdateCategoryDto category)
     {
-        using var connection = _context.CreateConnection();
+        var parameters = new
+        {
+            Id = id,
+            Name = category.Name,
+            Description = category.Description
+        };
 
-        var success = await connection.QuerySingleAsync<bool>(
+        return await QuerySingleAsync<bool>(
             "Category_Update",
-            new
-            {
-                Id = id,
-                Name = category.Name,
-                Description = category.Description
-            },
-            commandType: CommandType.StoredProcedure
+            parameters
         );
-
-        return success;
     }
 
     public async Task<bool> DeleteCategoryAsync(int id)
     {
-        using var connection = _context.CreateConnection();
-
-        var success = await connection.QuerySingleAsync<bool>(
+        return await QuerySingleAsync<bool>(
             "Category_Delete",
-            new { Id = id },
-            commandType: CommandType.StoredProcedure
+            new { Id = id }
         );
+    }
+    
+    public Task<PagedResponseDto<CategoryResponseDto>> GetFilteredCategoriesAsync(
+        CategoryFilterDto filter)
+    {
+        var parameters = new
+        {
+            filter.Search,
+            filter.SortBy,
+            filter.SortOrder,
+            filter.PageNumber,
+            filter.PageSize
+        };
 
-        return success;
+        return QueryMultipleAsync(
+            "Category_GetFiltered",
+            parameters,
+            async multi =>
+            {
+                var totalCount = await multi.ReadSingleAsync<int>();
+
+                var items = (await multi.ReadAsync<CategoryResponseDto>())
+                    .ToList();
+
+                return new PagedResponseDto<CategoryResponseDto>
+                {
+                    Items = items,
+                    TotalCount = totalCount,
+                    PageNumber = filter.PageNumber,
+                    PageSize = filter.PageSize
+                };
+            }
+        );
     }
 }

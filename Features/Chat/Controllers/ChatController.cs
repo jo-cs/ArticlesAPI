@@ -3,14 +3,14 @@ using ArticlesAPI.Features.Chat.DTOs;
 using ArticlesAPI.Features.Chat.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using ArticlesAPI.Shared.Base;
 
-namespace ArticlesAPI.Features.Chat;
+namespace ArticlesAPI.Features.Chat.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ChatController : ControllerBase
+public class ChatController : BaseController
 {
     private readonly IChatService _service;
 
@@ -24,11 +24,7 @@ public class ChatController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateChat()
     {
-        var userIdValue = User.FindFirst(
-            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("sub")?.Value;
-
-        if (!int.TryParse(userIdValue, out var userId))
+        if (CurrentUserId is not int userId)
             return Unauthorized();
 
         var id = await _service.CreateChatAsync(userId);
@@ -46,10 +42,7 @@ public class ChatController : ControllerBase
         if (chat is null)
             return NotFound();
 
-        var userIdClaim = User.FindFirst("sub")
-                          ?? User.FindFirst(ClaimTypes.NameIdentifier);
-
-        if (userIdClaim is null || !int.TryParse(userIdClaim.Value, out var currentUserId))
+        if (CurrentUserId is not int currentUserId)
             return Unauthorized();
 
         var isOwner = chat.UserId == currentUserId;
@@ -68,16 +61,12 @@ public class ChatController : ControllerBase
     [HttpGet("my-chats")]
     public async Task<IActionResult> GetMyChats()
     {
-        var userIdValue = User.FindFirst(
-            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("sub")?.Value;
-
-        if (!int.TryParse(userIdValue, out var userId))
+        if (CurrentUserId is not int userId)
             return Unauthorized();
 
         var chats = await _service.GetChatsByUserIdAsync(userId);
-
         return Ok(chats);
+
     }
 
     // 4. Get Unassigned Chats
@@ -95,15 +84,10 @@ public class ChatController : ControllerBase
     [Authorize(Roles = "Support")]
     public async Task<IActionResult> GetMyAssignedChats()
     {
-        var supportIdValue = User.FindFirst(
-            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("sub")?.Value;
-
-        if (!int.TryParse(supportIdValue, out var supportId))
+        if (CurrentUserId is not int supportId)
             return Unauthorized();
 
         var chats = await _service.GetChatsBySupportIdAsync(supportId);
-
         return Ok(chats);
     }
 
@@ -112,15 +96,10 @@ public class ChatController : ControllerBase
     [Authorize(Roles = "Support")]
     public async Task<IActionResult> AssignSupport(int chatId)
     {
-        var supportIdValue = User.FindFirst(
-            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("sub")?.Value;
-
-        if (!int.TryParse(supportIdValue, out var supportId))
+        if (CurrentUserId is not int supportId)
             return Unauthorized();
 
-        var assigned = await _service.AssignSupportAsync(
-            chatId, supportId);
+        var assigned = await _service.AssignSupportAsync(chatId, supportId);
 
         return assigned
             ? Ok(new { Message = "Chat assigned successfully." })
@@ -133,11 +112,7 @@ public class ChatController : ControllerBase
         int chatId,
         [FromBody] SendMessageRequest request)
     {
-        var senderIdValue = User.FindFirst(
-            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("sub")?.Value;
-
-        if (!int.TryParse(senderIdValue, out var senderId))
+        if (CurrentUserId is not int senderId)
             return Unauthorized();
 
         var chat = await _service.GetChatByIdAsync(chatId);
@@ -173,11 +148,7 @@ public class ChatController : ControllerBase
     [HttpGet("{chatId:int}/messages")]
     public async Task<IActionResult> GetMessages(int chatId)
     {
-        var userIdValue = User.FindFirst(
-            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("sub")?.Value;
-
-        if (!int.TryParse(userIdValue, out var userId))
+        if (CurrentUserId is not int userId)
             return Unauthorized();
 
         var chat = await _service.GetChatByIdAsync(chatId);
@@ -197,15 +168,10 @@ public class ChatController : ControllerBase
     [HttpPut("{chatId:int}/read")]
     public async Task<IActionResult> MarkAsRead(int chatId)
     {
-        var userIdValue = User.FindFirst(
-            System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-            ?? User.FindFirst("sub")?.Value;
-
-        if (!int.TryParse(userIdValue, out var userId))
+        if (CurrentUserId is not int userId)
             return Unauthorized();
 
-        var rowsAffected = await _service.MarkAsReadAsync(
-            chatId, userId);
+        var rowsAffected = await _service.MarkAsReadAsync(chatId, userId);
 
         return Ok(new { RowsAffected = rowsAffected });
     }
