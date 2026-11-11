@@ -1,40 +1,14 @@
-using System.Data;
 using ArticlesAPI.Features.Comments.DTOs;
 using ArticlesAPI.Infrastructure.Data;
-using Dapper;
+using ArticlesAPI.Shared.Repositories;
 namespace ArticlesAPI.Features.Comments.Repositories;
-public class CommentRepository : ICommentRepository
+public class CommentRepository : BaseRepository, ICommentRepository
 {
-    private readonly DapperContext _context;
-    public CommentRepository(DapperContext context) => _context = context;
-    public async Task<int> CreateCommentAsync(CreateCommentDto comment)
-    {
-        using var connection = _context.CreateConnection();
-        return await connection.QuerySingleAsync<int>("Comment_Create", new { comment.UserId, comment.ArticleId, comment.Content }, commandType: CommandType.StoredProcedure);
-    }
-    public async Task<CommentResponseDto?> GetCommentByIdAsync(int id)
-    {
-        using var connection = _context.CreateConnection();
-        return await connection.QuerySingleOrDefaultAsync<CommentResponseDto>("Comment_GetById", new { Id = id }, commandType: CommandType.StoredProcedure);
-    }
-    public async Task<IEnumerable<CommentResponseDto>> GetCommentsByArticleIdAsync(int articleId)
-    {
-        using var connection = _context.CreateConnection();
-        return await connection.QueryAsync<CommentResponseDto>("Comment_GetByArticleId", new { ArticleId = articleId }, commandType: CommandType.StoredProcedure);
-    }
-    public async Task<IEnumerable<CommentResponseDto>> GetCommentsByUserIdAsync(int userId)
-    {
-        using var connection = _context.CreateConnection();
-        return await connection.QueryAsync<CommentResponseDto>("Comment_GetByUserId", new { UserId = userId }, commandType: CommandType.StoredProcedure);
-    }
-    public async Task<bool> UpdateCommentAsync(int id, UpdateCommentDto comment)
-    {
-        using var connection = _context.CreateConnection();
-        return await connection.QuerySingleAsync<bool>("Comment_Update", new { Id = id, comment.Content }, commandType: CommandType.StoredProcedure);
-    }
-    public async Task<bool> DeleteCommentAsync(int id)
-    {
-        using var connection = _context.CreateConnection();
-        return await connection.QuerySingleAsync<bool>("Comment_Delete", new { Id = id }, commandType: CommandType.StoredProcedure);
-    }
+    public CommentRepository(DapperContext context) : base(context) { }
+    public Task<int> CreateCommentAsync(CreateCommentDto comment) => QuerySingleAsync<int>("Comment_Create", new { comment.UserId, comment.ArticleId, comment.Content });
+    public Task<CommentResponseDto?> GetCommentByIdAsync(int id) => QuerySingleOrDefaultAsync<CommentResponseDto>("Comment_GetById", new { Id = id });
+    public Task<IEnumerable<CommentResponseDto>> GetCommentsByArticleIdAsync(int articleId) => QueryAsync<CommentResponseDto>("Comment_GetByArticleId", new { ArticleId = articleId });
+    public Task<IEnumerable<CommentResponseDto>> GetCommentsByUserIdAsync(int userId) => QueryAsync<CommentResponseDto>("Comment_GetByUserId", new { UserId = userId });
+    public Task<bool> UpdateCommentAsync(int id, UpdateCommentDto comment) => QuerySingleAsync<bool>("Comment_Update", new { Id = id, comment.Content });
+    public Task<bool> DeleteCommentAsync(int id) => QuerySingleAsync<bool>("Comment_Delete", new { Id = id });
 }

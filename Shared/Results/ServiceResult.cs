@@ -35,4 +35,17 @@ public class ServiceResult<T>
         string error,
         int statusCode = 400)
         => new(error, statusCode);
+
+    public static async Task<ServiceResult<T>> FromAsync(
+        Task<T> operation,
+        string failureMessage,
+        int failureStatusCode = 404)
+    {
+        var data = await operation;
+
+        if (data is null || data is bool success && !success)
+            return Failure(failureMessage, failureStatusCode);
+
+        return Ok(data);
+    }
 }

@@ -1,104 +1,35 @@
-﻿using System.Data;
 using ArticlesAPI.Features.Users.Models;
-using Dapper;
 using ArticlesAPI.Infrastructure.Data;
+using ArticlesAPI.Shared.Repositories;
 
 namespace ArticlesAPI.Features.Users.Repositories;
 
-public class UserRepository : IUserRepository
+public class UserRepository : BaseRepository, IUserRepository
 {
-    
-    private readonly DapperContext  _context;
-    
-    public UserRepository(DapperContext context)
-    {
-        _context = context;
-    }
-    
-    public async Task<int> CreateUserAsync(User user)
-    {
-        using var connection = _context.CreateConnection();
+    public UserRepository(DapperContext context) : base(context) { }
 
-        var userId = await connection.QuerySingleAsync<int>(
-            "User_Create",
-            new
-            {
-                FullName=user.FullName,
-                Email=user.Email,
-                HashPassword=user.HashPassword,
-                RoleId=user.RoleId
-            },
-            commandType: CommandType.StoredProcedure
-        );
+    public Task<int> CreateUserAsync(User user) => QuerySingleAsync<int>(
+        "User_Create",
+        new { user.FullName, user.Email, user.HashPassword, user.RoleId });
 
-        return userId;
-    }
+    public Task<User?> GetUserByIdAsync(int id) => QuerySingleOrDefaultAsync<User>(
+        "User_GetById", new { Id = id });
 
-    public async Task<User?> GetUserByIdAsync(int id)
-    {
-        using var connection = _context.CreateConnection();
+    public Task<User?> GetUserByEmailAsync(string email) => QuerySingleOrDefaultAsync<User>(
+        "User_GetByEmail", new { Email = email });
 
-        var user = await connection.QuerySingleOrDefaultAsync<User>(
-            "User_GetById",
-            new{Id=id},
-            commandType: CommandType.StoredProcedure);
-        return user;
-    }
-
-    public async Task<User?> GetUserByEmailAsync(string email)
-    {
-        using var connection = _context.CreateConnection();
-        
-        var user = await connection.QuerySingleOrDefaultAsync<User>(
-            "User_GetByEmail",
-            new{Email = email},
-            commandType: CommandType.StoredProcedure);
-            return user;
-    }
-
-    public async Task<IEnumerable<User>> GetAllUsersAsync()
-    {
-        using var connection = _context.CreateConnection();
-        
-        var users = await connection.QueryAsync<User>(
-            "User_GetAll",
-            commandType: CommandType.StoredProcedure
-            );
-        return  users;
-    }
-
+    public Task<IEnumerable<User>> GetAllUsersAsync() => QueryAsync<User>("User_GetAll");
 
     public async Task<bool> DeleteUserAsync(int id)
-    {
-        using var connection = _context.CreateConnection();
-
-        var rowsAffected = await connection.QuerySingleAsync<int>(
-            "User_Delete",
-            new { Id = id },
-            commandType: CommandType.StoredProcedure);
-
-        return rowsAffected > 0;
-    }
-
-
+        => await QuerySingleAsync<int>("User_Delete", new { Id = id }) > 0;
 
     public async Task<bool> UpdateUserAsync(User user)
-    {
-        using var connection = _context.CreateConnection();
-
-        var rowsAffected = await connection.QuerySingleAsync<int>(
-            "User_Update",
-            new
-            {
-                Id = user.Id,
-                FullName = user.FullName,
-                Email = user.Email,
-                HashPassword = user.HashPassword,
-                RoleId = user.RoleId
-            },
-            commandType: CommandType.StoredProcedure);
-
-        return rowsAffected > 0;
-    }
-
+        => await QuerySingleAsync<int>("User_Update", new
+        {
+            user.Id,
+            user.FullName,
+            user.Email,
+            user.HashPassword,
+            user.RoleId
+        }) > 0;
 }

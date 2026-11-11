@@ -26,6 +26,19 @@ public abstract class BaseRepository
         );
     }
 
+    protected async Task<T?> QuerySingleOrDefaultAsync<T>(
+        string procedureName,
+        object? parameters = null)
+    {
+        using var connection = Context.CreateConnection();
+
+        return await connection.QuerySingleOrDefaultAsync<T>(
+            procedureName,
+            parameters,
+            commandType: CommandType.StoredProcedure
+        );
+    }
+
     protected async Task<IEnumerable<T>> QueryAsync<T>(
         string procedureName,
         object? parameters = null)

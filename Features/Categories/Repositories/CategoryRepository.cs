@@ -1,4 +1,4 @@
-﻿using ArticlesAPI.Features.Categories.DTOs;
+using ArticlesAPI.Features.Categories.DTOs;
 using ArticlesAPI.Infrastructure.Data;
 using ArticlesAPI.Shared.DTOs;
 using ArticlesAPI.Shared.Repositories;
